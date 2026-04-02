@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Stock Radar 🔥</title>
+<style>
+body {
+  font-family: Arial;
+  background: #111;
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
+input {
+  width: 300px;
+  padding: 10px;
+}
+button {
+  padding: 10px 20px;
+  margin: 10px;
+  cursor: pointer;
+}
+.card {
+  background: #222;
+  margin: 10px;
+  padding: 15px;
+  border-radius: 10px;
+}
+.green { color: #00ff88; }
+.yellow { color: #ffd000; }
+.red { color: #ff4d4d; }
+</style>
+</head>
+
+<body>
+
+<h1>🔥 Stock Radar</h1>
+
+<input id="symbols" placeholder="AAPL,TSLA,NVDA" />
+<br>
+<button onclick="scan()">Scan</button>
+
+<div id="results"></div>
+
+<script>
+async function scan() {
+  const symbols = document.getElementById("symbols").value;
+  const url = "https://flat-firefly-1af6.www-ana-com.workers.dev/?symbols=" + symbols + "&type=scan";
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  const container = document.getElementById("results");
+  container.innerHTML = "";
+
+  data.forEach(stock => {
+    const div = document.createElement("div");
+    div.className = "card";
+
+    let color = "yellow";
+    if (stock.decision.includes("BUY")) color = "green";
+    if (stock.decision.includes("AVOID")) color = "red";
+
+    div.innerHTML = `
+      <h2>${stock.symbol}</h2>
+      <p>Price: ${stock.price}</p>
+      <p class="${color}">${stock.decision}</p>
+      <p>${stock.opportunityType}</p>
+      <p>${stock.reason}</p>
+      <p>Score: ${stock.opportunityScore} | Entry: ${stock.entryScore}</p>
+    `;
+
+    container.appendChild(div);
+  });
+}
+</script>
+
+</body>
+</html>
