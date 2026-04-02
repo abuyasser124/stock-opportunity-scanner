@@ -6,182 +6,136 @@
 <title>🔥 أداة صيد الفرص</title>
 
 <style>
-body {
-  font-family: Arial;
-  background: #0f1115;
-  color: white;
-  padding: 20px;
-  direction: rtl;
-}
-
-.container {
-  max-width: 1000px;
-  margin: auto;
-}
-
-h1 {
-  text-align: center;
-}
-
-input {
-  width: 100%;
-  padding: 14px;
-  margin-bottom: 10px;
-  border-radius: 10px;
-  border: 1px solid #333;
-  background: #111;
-  color: white;
-}
-
-button {
-  padding: 12px 18px;
-  margin: 5px;
-  border-radius: 10px;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.scan-btn { background:#1f8cff; }
-.analyze-btn { background:#00b894; }
-
-.status {
-  margin-top:10px;
-  color:#ffd166;
-}
-
-.grid {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-  gap:10px;
-  margin-top:20px;
-}
-
-.card {
-  background:#171a21;
-  padding:15px;
-  border-radius:10px;
-}
-
-.buy { color:#00ff88; }
-.watch { color:#ffd000; }
-.avoid { color:#ff4d4d; }
+body {font-family:Arial;background:#0f1115;color:white;padding:20px;direction:rtl;}
+.container {max-width:1000px;margin:auto;}
+h1{text-align:center;}
+input{width:100%;padding:14px;margin-bottom:10px;border-radius:10px;border:1px solid #333;background:#111;color:white;}
+button{padding:12px 18px;margin:5px;border-radius:10px;border:none;cursor:pointer;font-weight:bold;}
+.scan-btn{background:#1f8cff;}
+.analyze-btn{background:#00b894;}
+.status{margin-top:10px;color:#ffd166;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin-top:20px;}
+.card{background:#171a21;padding:15px;border-radius:10px;}
+.buy{color:#00ff88;}
+.watch{color:#ffd000;}
+.avoid{color:#ff4d4d;}
 </style>
 </head>
 
 <body>
 
 <div class="container">
-
 <h1>🔥 أداة صيد الفرص</h1>
 
 <input id="symbolsInput" placeholder="AAPL أو AAPL,TSLA,NVDA" />
 
 <div>
-  <button class="scan-btn" onclick="runScan()">تشغيل السكان</button>
-  <button class="analyze-btn" onclick="runAnalysis()">تحليل سهم</button>
-  <button class="scan-btn" onclick="runRadar()">🔥 أفضل الفرص</button>
+<button class="scan-btn" onclick="runScan()">تشغيل السكان</button>
+<button class="analyze-btn" onclick="runAnalysis()">تحليل سهم</button>
+<button class="scan-btn" onclick="runRadar()">🔥 أفضل الفرص</button>
 </div>
 
 <div class="status" id="status"></div>
-
 <div id="results" class="grid"></div>
-
 </div>
 
 <script>
 
 const WORKER_URL = "https://flat-firefly-1af6.www-ana-com.workers.dev";
 
+/* 🔥 رادار خفيف سريع */
 const RADAR_SYMBOLS = [
-"AAPL","MSFT","NVDA","AMD","TSLA","META","AMZN","GOOGL","AVGO","NFLX",
-"CRM","ADBE","INTC","CSCO","ORCL","QCOM","TXN","MU","NOW","PANW",
-"PLTR","SNOW","SHOP","UBER","ABNB","DDOG","ZS","CRWD","OKTA","NET",
-"TEAM","SQ","PYPL","ROKU","AI","SMCI","ARM","SOFI","RBLX",
-"NVO","LLY","PFE","MRNA","ISRG","VRTX","REGN","UNH","ELV","CVS",
-"XOM","CVX","SLB","HAL","OXY","COP",
-"WMT","COST","HD","LOW","TGT",
-"DIS","SONY","SPOT"
+"AAPL","NVDA","AMD","TSLA","META","AMZN","GOOGL","MSFT",
+"AVGO","NFLX","PLTR","SMCI","ARM","SHOP","UBER","ABNB",
+"CRM","ADBE","INTC","QCOM","PANW","ZS","CRWD","DDOG"
 ];
 
 function decisionColor(text){
-  if(text.includes("BUY")) return "buy";
-  if(text.includes("AVOID")) return "avoid";
-  return "watch";
+if(text.includes("BUY")) return "buy";
+if(text.includes("AVOID")) return "avoid";
+return "watch";
 }
 
 function renderCard(stock){
-  return `
-    <div class="card">
-      <h3>${stock.symbol}</h3>
-      <p class="${decisionColor(stock.decision)}">${stock.decision}</p>
-      <p>السعر: ${stock.price}</p>
-      <p>الفرصة: ${stock.opportunityType}</p>
-      <p>${stock.reason}</p>
-      <p>Score: ${stock.opportunityScore} | Entry: ${stock.entryScore}</p>
-    </div>
-  `;
+return `
+<div class="card">
+<h3>${stock.symbol}</h3>
+<p class="${decisionColor(stock.decision)}">${stock.decision}</p>
+<p>السعر: ${stock.price}</p>
+<p>${stock.opportunityType}</p>
+<p>${stock.reason}</p>
+<p>Score: ${stock.opportunityScore} | Entry: ${stock.entryScore}</p>
+</div>
+`;
 }
 
 function normalize(text){
-  return text.split(",").map(s=>s.trim().toUpperCase()).filter(Boolean);
+return text.split(",").map(s=>s.trim().toUpperCase()).filter(Boolean);
 }
 
+/* 🔵 السكان (يدعم سهم واحد أو عدة أسهم) */
 async function runScan(){
-  const input = document.getElementById("symbolsInput").value;
-  const status = document.getElementById("status");
-  const results = document.getElementById("results");
+const input = document.getElementById("symbolsInput").value;
+const status = document.getElementById("status");
+const results = document.getElementById("results");
 
-  const symbols = normalize(input);
+const symbols = normalize(input);
 
-  if(symbols.length===0){
-    status.textContent="اكتب سهم أو أكثر";
-    return;
-  }
-
-  status.textContent="جاري التحليل...";
-
-  const res = await fetch(`${WORKER_URL}/?symbols=${symbols.join(",")}&type=scan`);
-  const data = await res.json();
-
-  results.innerHTML = data.map(renderCard).join("");
-  status.textContent="تم التحليل";
+if(symbols.length===0){
+status.textContent="اكتب سهم واحد على الأقل";
+return;
 }
 
+status.textContent="جاري التحليل...";
+
+const res = await fetch(`${WORKER_URL}/?symbols=${symbols.join(",")}&type=scan`);
+const data = await res.json();
+
+results.innerHTML = data.map(renderCard).join("");
+status.textContent="تم التحليل";
+}
+
+/* 🟢 تحليل سهم */
 async function runAnalysis(){
-  const input = document.getElementById("symbolsInput").value;
-  const status = document.getElementById("status");
-  const results = document.getElementById("results");
+const input = document.getElementById("symbolsInput").value;
+const status = document.getElementById("status");
+const results = document.getElementById("results");
 
-  const symbol = normalize(input)[0];
+const symbol = normalize(input)[0];
 
-  if(!symbol){
-    status.textContent="اكتب سهم";
-    return;
-  }
-
-  status.textContent="جاري التحليل...";
-
-  const res = await fetch(`${WORKER_URL}/?symbol=${symbol}&type=analysis`);
-  const data = await res.json();
-
-  results.innerHTML = renderCard(data);
-  status.textContent="تم التحليل";
+if(!symbol){
+status.textContent="اكتب سهم";
+return;
 }
 
+status.textContent="جاري التحليل...";
+
+const res = await fetch(`${WORKER_URL}/?symbol=${symbol}&type=analysis`);
+const data = await res.json();
+
+results.innerHTML = renderCard(data);
+status.textContent="تم التحليل";
+}
+
+/* 🔥 Radar سريع (بدون تعليق) */
 async function runRadar(){
-  const status = document.getElementById("status");
-  const results = document.getElementById("results");
+const status = document.getElementById("status");
+const results = document.getElementById("results");
 
-  status.textContent="🔥 جاري البحث عن الفرص...";
+status.textContent="🔥 جاري البحث عن الفرص...";
 
-  const res = await fetch(`${WORKER_URL}/?symbols=${RADAR_SYMBOLS.join(",")}&type=scan`);
-  const data = await res.json();
+try{
+const res = await fetch(`${WORKER_URL}/?symbols=${RADAR_SYMBOLS.join(",")}&type=scan`);
+const data = await res.json();
 
-  const top = data.slice(0,10);
+/* أفضل 6 فقط (سرعة) */
+const top = data.slice(0,6);
 
-  results.innerHTML = top.map(renderCard).join("");
-  status.textContent="🔥 أفضل 10 فرص جاهزة";
+results.innerHTML = top.map(renderCard).join("");
+status.textContent="🔥 أفضل الفرص جاهزة";
+}catch(e){
+status.textContent="فشل الرادار";
+}
 }
 
 </script>
