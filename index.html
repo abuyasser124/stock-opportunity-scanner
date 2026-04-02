@@ -1,79 +1,256 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
-<meta charset="UTF-8">
-<title>Stock Radar 🔥</title>
-<style>
-body {
-  font-family: Arial;
-  background: #111;
-  color: white;
-  text-align: center;
-  padding: 20px;
-}
-input {
-  width: 300px;
-  padding: 10px;
-}
-button {
-  padding: 10px 20px;
-  margin: 10px;
-  cursor: pointer;
-}
-.card {
-  background: #222;
-  margin: 10px;
-  padding: 15px;
-  border-radius: 10px;
-}
-.green { color: #00ff88; }
-.yellow { color: #ffd000; }
-.red { color: #ff4d4d; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>أداة صيد الفرص</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f1115;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+      direction: rtl;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    p.sub {
+      text-align: center;
+      color: #aaa;
+      margin-bottom: 25px;
+    }
+
+    .box {
+      background: #171a21;
+      border: 1px solid #2a2f3a;
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid #333;
+      background: #0f1115;
+      color: white;
+      box-sizing: border-box;
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 12px 18px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: bold;
+    }
+
+    .scan-btn {
+      background: #1f8cff;
+      color: white;
+    }
+
+    .analyze-btn {
+      background: #00b894;
+      color: white;
+    }
+
+    .status {
+      margin-top: 12px;
+      color: #ffd166;
+      min-height: 24px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .card {
+      background: #171a21;
+      border: 1px solid #2a2f3a;
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .buy {
+      background: #123d2f;
+      color: #4cffb0;
+    }
+
+    .watch {
+      background: #4a3a0a;
+      color: #ffd166;
+    }
+
+    .avoid {
+      background: #4b1f26;
+      color: #ff7b8a;
+    }
+
+    .muted {
+      color: #aaa;
+      font-size: 14px;
+    }
+
+    .line {
+      margin: 6px 0;
+      font-size: 14px;
+    }
+
+    .single-result {
+      margin-top: 20px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
-
 <body>
+  <div class="container">
+    <h1>🔥 أداة صيد الفرص</h1>
+    <p class="sub">تحليل سهم واحد أو سكان عدة أسهم مع قرار ذكي مبدئي</p>
 
-<h1>🔥 Stock Radar</h1>
+    <div class="box">
+      <input id="symbolsInput" placeholder="مثال: AAPL,TSLA,NVDA,AMD" />
+      <div class="buttons">
+        <button class="scan-btn" onclick="runScan()">تشغيل السكان</button>
+        <button class="analyze-btn" onclick="runAnalysis()">تحليل سهم واحد</button>
+      </div>
+      <div class="status" id="status"></div>
+    </div>
 
-<input id="symbols" placeholder="AAPL,TSLA,NVDA" />
-<br>
-<button onclick="scan()">Scan</button>
+    <div id="singleResult" class="single-result hidden"></div>
+    <div id="results" class="grid"></div>
+  </div>
 
-<div id="results"></div>
+  <script>
+    const WORKER_URL = "https://flat-firefly-1af6.www-ana-com.workers.dev";
 
-<script>
-async function scan() {
-  const symbols = document.getElementById("symbols").value;
-  const url = "https://flat-firefly-1af6.www-ana-com.workers.dev/?symbols=" + symbols + "&type=scan";
+    function decisionClass(text) {
+      if (!text) return "watch";
+      if (text.includes("BUY")) return "buy";
+      if (text.includes("AVOID")) return "avoid";
+      return "watch";
+    }
 
-  const res = await fetch(url);
-  const data = await res.json();
+    function renderCard(stock) {
+      return `
+        <div class="card">
+          <h3>${stock.symbol}</h3>
+          <div class="badge ${decisionClass(stock.decision)}">${stock.decision}</div>
+          <div class="line">السعر: <strong>${stock.price ?? "-"}</strong></div>
+          <div class="line">نوع الفرصة: <strong>${stock.opportunityType ?? "-"}</strong></div>
+          <div class="line">السبب: <strong>${stock.reason ?? "-"}</strong></div>
+          <div class="line">Opportunity Score: <strong>${stock.opportunityScore ?? "-"}</strong></div>
+          <div class="line">Entry Score: <strong>${stock.entryScore ?? "-"}</strong></div>
+          <div class="line">Confidence: <strong>${stock.confidence ?? "-"}</strong></div>
+          <div class="line muted">Volume: ${stock.volumeSignal ?? "-"}</div>
+          <div class="line muted">Momentum: ${stock.momentumSignal ?? "-"}</div>
+          <div class="line muted">Location: ${stock.locationSignal ?? "-"}</div>
+        </div>
+      `;
+    }
 
-  const container = document.getElementById("results");
-  container.innerHTML = "";
+    async function runScan() {
+      const input = document.getElementById("symbolsInput").value.trim();
+      const status = document.getElementById("status");
+      const results = document.getElementById("results");
+      const singleResult = document.getElementById("singleResult");
 
-  data.forEach(stock => {
-    const div = document.createElement("div");
-    div.className = "card";
+      singleResult.classList.add("hidden");
+      singleResult.innerHTML = "";
+      results.innerHTML = "";
 
-    let color = "yellow";
-    if (stock.decision.includes("BUY")) color = "green";
-    if (stock.decision.includes("AVOID")) color = "red";
+      if (!input) {
+        status.textContent = "اكتب قائمة أسهم أولًا";
+        return;
+      }
 
-    div.innerHTML = `
-      <h2>${stock.symbol}</h2>
-      <p>Price: ${stock.price}</p>
-      <p class="${color}">${stock.decision}</p>
-      <p>${stock.opportunityType}</p>
-      <p>${stock.reason}</p>
-      <p>Score: ${stock.opportunityScore} | Entry: ${stock.entryScore}</p>
-    `;
+      status.textContent = "جارٍ تشغيل السكان...";
 
-    container.appendChild(div);
-  });
-}
-</script>
+      try {
+        const res = await fetch(`${WORKER_URL}/?symbols=${encodeURIComponent(input)}&type=scan`);
+        const data = await res.json();
 
+        if (!Array.isArray(data)) {
+          status.textContent = "صار خطأ في البيانات";
+          return;
+        }
+
+        results.innerHTML = data.map(renderCard).join("");
+        status.textContent = `تم تحليل ${data.length} سهم`;
+      } catch (err) {
+        status.textContent = "فشل السكان. تحقق من الربط أو CORS";
+      }
+    }
+
+    async function runAnalysis() {
+      const input = document.getElementById("symbolsInput").value.trim();
+      const status = document.getElementById("status");
+      const results = document.getElementById("results");
+      const singleResult = document.getElementById("singleResult");
+
+      results.innerHTML = "";
+      singleResult.innerHTML = "";
+      singleResult.classList.add("hidden");
+
+      if (!input) {
+        status.textContent = "اكتب رمز سهم واحد أولًا";
+        return;
+      }
+
+      const firstSymbol = input.split(",")[0].trim();
+
+      status.textContent = `جارٍ تحليل ${firstSymbol}...`;
+
+      try {
+        const res = await fetch(`${WORKER_URL}/?symbol=${encodeURIComponent(firstSymbol)}&type=analysis`);
+        const data = await res.json();
+
+        singleResult.innerHTML = renderCard(data);
+        singleResult.classList.remove("hidden");
+        status.textContent = `تم تحليل ${firstSymbol}`;
+      } catch (err) {
+        status.textContent = "فشل التحليل. تحقق من الربط أو CORS";
+      }
+    }
+  </script>
 </body>
 </html>
