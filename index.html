@@ -50,6 +50,13 @@
       font-size: 16px;
     }
 
+    .hint {
+      color: #9aa3b2;
+      font-size: 13px;
+      margin-top: -5px;
+      margin-bottom: 12px;
+    }
+
     .buttons {
       display: flex;
       gap: 10px;
@@ -140,6 +147,23 @@
     .hidden {
       display: none;
     }
+
+    .mini-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .mini-btn {
+      background: #252a33;
+      color: #ddd;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #333;
+      cursor: pointer;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
@@ -148,11 +172,20 @@
     <p class="sub">تحليل سهم واحد أو سكان عدة أسهم مع قرار ذكي مبدئي</p>
 
     <div class="box">
-      <input id="symbolsInput" placeholder="مثال: AAPL,TSLA,NVDA,AMD" />
+      <input id="symbolsInput" placeholder="مثال: AAPL أو AAPL,TSLA,NVDA,AMD" />
+      <div class="hint">اكتب سهمًا واحدًا للتحليل أو عدة أسهم مفصولة بفواصل لتشغيل السكان</div>
+
       <div class="buttons">
         <button class="scan-btn" onclick="runScan()">تشغيل السكان</button>
         <button class="analyze-btn" onclick="runAnalysis()">تحليل سهم واحد</button>
       </div>
+
+      <div class="mini-actions">
+        <button class="mini-btn" onclick="setExample('AAPL')">مثال تحليل</button>
+        <button class="mini-btn" onclick="setExample('AAPL,TSLA,NVDA,AMD')">مثال سكان</button>
+        <button class="mini-btn" onclick="clearAllFields()">مسح</button>
+      </div>
+
       <div class="status" id="status"></div>
     </div>
 
@@ -170,13 +203,49 @@
       return "watch";
     }
 
+    function normalizeSymbols(text) {
+      return text
+        .split(",")
+        .map(s => s.trim().toUpperCase())
+        .filter(Boolean);
+    }
+
+    function setExample(value) {
+      document.getElementById("symbolsInput").value = value;
+    }
+
+    function clearAllFields() {
+      document.getElementById("symbolsInput").value = "";
+      document.getElementById("status").textContent = "";
+      document.getElementById("results").innerHTML = "";
+      document.getElementById("singleResult").innerHTML = "";
+      document.getElementById("singleResult").classList.add("hidden");
+    }
+
+    function translateDecision(text) {
+      if (!text) return "-";
+      if (text.includes("BUY")) return "🟢 شراء";
+      if (text.includes("AVOID")) return "🔴 تجنب";
+      return "🟡 مراقبة";
+    }
+
+    function translateType(text) {
+      if (!text) return "-";
+      return text
+        .replace("PULLBACK", "سحب/ارتداد")
+        .replace("BREAKOUT WATCH", "مراقبة اختراق")
+        .replace("LATE / RESISTANCE", "متأخر / قرب مقاومة")
+        .replace("WEAK SETUP", "فرصة ضعيفة")
+        .replace("NEUTRAL", "محايد");
+    }
+
     function renderCard(stock) {
       return `
         <div class="card">
           <h3>${stock.symbol}</h3>
-          <div class="badge ${decisionClass(stock.decision)}">${stock.decision}</div>
+          <div class="badge ${decisionClass(stock.decision)}">${translateDecision(stock.decision)}</div>
           <div class="line">السعر: <strong>${stock.price ?? "-"}</strong></div>
-          <div class="line">نوع الفرصة: <strong>${stock.opportunityType ?? "-"}</strong></div>
+          <div class="line">نوع الفرصة: <strong>${translateType(stock.opportunityType ?? "-")}</strong></div>
           <div class="line">السبب: <strong>${stock.reason ?? "-"}</strong></div>
           <div class="line">Opportunity Score: <strong>${stock.opportunityScore ?? "-"}</strong></div>
           <div class="line">Entry Score: <strong>${stock.entryScore ?? "-"}</strong></div>
@@ -189,28 +258,37 @@
     }
 
     async function runScan() {
-      const input = document.getElementById("symbolsInput").value.trim();
+      const raw = document.getElementById("symbolsInput").value.trim();
       const status = document.getElementById("status");
       const results = document.getElementById("results");
       const singleResult = document.getElementById("singleResult");
 
-      singleResult.classList.add("hidden");
-      singleResult.innerHTML = "";
       results.innerHTML = "";
+      singleResult.innerHTML = "";
+      singleResult.classList.add("hidden");
 
-      if (!input) {
-        status.textContent = "اكتب قائمة أسهم أولًا";
+      if (!raw) {
+        status.textContent = "اكتب سهمًا واحدًا أو قائمة أسهم أولًا";
         return;
       }
 
-      status.textContent = "جارٍ تشغيل السكان...";
+      const symbols = normalizeSymbols(raw);
+
+      if (symbols.length === 0) {
+        status.textContent = "لم يتم العثور على رموز صالحة";
+        return;
+      }
+
+      status.textContent = `جارٍ تشغيل السكان على ${symbols.length} سهم...`;
 
       try {
-        const res = await fetch(`${WORKER_URL}/?symbols=${encodeURIComponent(input)}&type=scan`);
+        const res = await fetch(
+          `${WORKER_URL}/?symbols=${encodeURIComponent(symbols.join(","))}&type=scan`
+        );
         const data = await res.json();
 
         if (!Array.isArray(data)) {
-          status.textContent = "صار خطأ في البيانات";
+          status.textContent = "صار خطأ في بيانات السكان";
           return;
         }
 
@@ -222,7 +300,7 @@
     }
 
     async function runAnalysis() {
-      const input = document.getElementById("symbolsInput").value.trim();
+      const raw = document.getElementById("symbolsInput").value.trim();
       const status = document.getElementById("status");
       const results = document.getElementById("results");
       const singleResult = document.getElementById("singleResult");
@@ -231,17 +309,25 @@
       singleResult.innerHTML = "";
       singleResult.classList.add("hidden");
 
-      if (!input) {
+      if (!raw) {
         status.textContent = "اكتب رمز سهم واحد أولًا";
         return;
       }
 
-      const firstSymbol = input.split(",")[0].trim();
+      const symbols = normalizeSymbols(raw);
+      const firstSymbol = symbols[0];
+
+      if (!firstSymbol) {
+        status.textContent = "رمز السهم غير صالح";
+        return;
+      }
 
       status.textContent = `جارٍ تحليل ${firstSymbol}...`;
 
       try {
-        const res = await fetch(`${WORKER_URL}/?symbol=${encodeURIComponent(firstSymbol)}&type=analysis`);
+        const res = await fetch(
+          `${WORKER_URL}/?symbol=${encodeURIComponent(firstSymbol)}&type=analysis`
+        );
         const data = await res.json();
 
         singleResult.innerHTML = renderCard(data);
@@ -251,6 +337,12 @@
         status.textContent = "فشل التحليل. تحقق من الربط أو CORS";
       }
     }
+
+    document.getElementById("symbolsInput").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        runAnalysis();
+      }
+    });
   </script>
 </body>
 </html>
