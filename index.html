@@ -1,348 +1,190 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>أداة صيد الفرص</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #0f1115;
-      color: #fff;
-      margin: 0;
-      padding: 20px;
-      direction: rtl;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔥 أداة صيد الفرص</title>
 
-    .container {
-      max-width: 1000px;
-      margin: auto;
-    }
+<style>
+body {
+  font-family: Arial;
+  background: #0f1115;
+  color: white;
+  padding: 20px;
+  direction: rtl;
+}
 
-    h1 {
-      text-align: center;
-      margin-bottom: 10px;
-    }
+.container {
+  max-width: 1000px;
+  margin: auto;
+}
 
-    p.sub {
-      text-align: center;
-      color: #aaa;
-      margin-bottom: 25px;
-    }
+h1 {
+  text-align: center;
+}
 
-    .box {
-      background: #171a21;
-      border: 1px solid #2a2f3a;
-      border-radius: 14px;
-      padding: 18px;
-      margin-bottom: 20px;
-    }
+input {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  border: 1px solid #333;
+  background: #111;
+  color: white;
+}
 
-    input {
-      width: 100%;
-      padding: 14px;
-      border-radius: 10px;
-      border: 1px solid #333;
-      background: #0f1115;
-      color: white;
-      box-sizing: border-box;
-      margin-bottom: 12px;
-      font-size: 16px;
-    }
+button {
+  padding: 12px 18px;
+  margin: 5px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
 
-    .hint {
-      color: #9aa3b2;
-      font-size: 13px;
-      margin-top: -5px;
-      margin-bottom: 12px;
-    }
+.scan-btn { background:#1f8cff; }
+.analyze-btn { background:#00b894; }
 
-    .buttons {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+.status {
+  margin-top:10px;
+  color:#ffd166;
+}
 
-    button {
-      padding: 12px 18px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 15px;
-      font-weight: bold;
-    }
+.grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:10px;
+  margin-top:20px;
+}
 
-    .scan-btn {
-      background: #1f8cff;
-      color: white;
-    }
+.card {
+  background:#171a21;
+  padding:15px;
+  border-radius:10px;
+}
 
-    .analyze-btn {
-      background: #00b894;
-      color: white;
-    }
-
-    .status {
-      margin-top: 12px;
-      color: #ffd166;
-      min-height: 24px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 15px;
-      margin-top: 20px;
-    }
-
-    .card {
-      background: #171a21;
-      border: 1px solid #2a2f3a;
-      border-radius: 14px;
-      padding: 16px;
-    }
-
-    .card h3 {
-      margin: 0 0 10px;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-
-    .buy {
-      background: #123d2f;
-      color: #4cffb0;
-    }
-
-    .watch {
-      background: #4a3a0a;
-      color: #ffd166;
-    }
-
-    .avoid {
-      background: #4b1f26;
-      color: #ff7b8a;
-    }
-
-    .muted {
-      color: #aaa;
-      font-size: 14px;
-    }
-
-    .line {
-      margin: 6px 0;
-      font-size: 14px;
-    }
-
-    .single-result {
-      margin-top: 20px;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    .mini-actions {
-      margin-top: 10px;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .mini-btn {
-      background: #252a33;
-      color: #ddd;
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: 1px solid #333;
-      cursor: pointer;
-      font-size: 13px;
-    }
-  </style>
+.buy { color:#00ff88; }
+.watch { color:#ffd000; }
+.avoid { color:#ff4d4d; }
+</style>
 </head>
+
 <body>
-  <div class="container">
-    <h1>🔥 أداة صيد الفرص</h1>
-    <p class="sub">تحليل سهم واحد أو سكان عدة أسهم مع قرار ذكي مبدئي</p>
 
-    <div class="box">
-      <input id="symbolsInput" placeholder="مثال: AAPL أو AAPL,TSLA,NVDA,AMD" />
-      <div class="hint">اكتب سهمًا واحدًا للتحليل أو عدة أسهم مفصولة بفواصل لتشغيل السكان</div>
+<div class="container">
 
-      <div class="buttons">
-        <button class="scan-btn" onclick="runScan()">تشغيل السكان</button>
-        <button class="analyze-btn" onclick="runAnalysis()">تحليل سهم واحد</button>
-      </div>
+<h1>🔥 أداة صيد الفرص</h1>
 
-      <div class="mini-actions">
-        <button class="mini-btn" onclick="setExample('AAPL')">مثال تحليل</button>
-        <button class="mini-btn" onclick="setExample('AAPL,TSLA,NVDA,AMD')">مثال سكان</button>
-        <button class="mini-btn" onclick="clearAllFields()">مسح</button>
-      </div>
+<input id="symbolsInput" placeholder="AAPL أو AAPL,TSLA,NVDA" />
 
-      <div class="status" id="status"></div>
+<div>
+  <button class="scan-btn" onclick="runScan()">تشغيل السكان</button>
+  <button class="analyze-btn" onclick="runAnalysis()">تحليل سهم</button>
+  <button class="scan-btn" onclick="runRadar()">🔥 أفضل الفرص</button>
+</div>
+
+<div class="status" id="status"></div>
+
+<div id="results" class="grid"></div>
+
+</div>
+
+<script>
+
+const WORKER_URL = "https://flat-firefly-1af6.www-ana-com.workers.dev";
+
+const RADAR_SYMBOLS = [
+"AAPL","MSFT","NVDA","AMD","TSLA","META","AMZN","GOOGL","AVGO","NFLX",
+"CRM","ADBE","INTC","CSCO","ORCL","QCOM","TXN","MU","NOW","PANW",
+"PLTR","SNOW","SHOP","UBER","ABNB","DDOG","ZS","CRWD","OKTA","NET",
+"TEAM","SQ","PYPL","ROKU","AI","SMCI","ARM","SOFI","RBLX",
+"NVO","LLY","PFE","MRNA","ISRG","VRTX","REGN","UNH","ELV","CVS",
+"XOM","CVX","SLB","HAL","OXY","COP",
+"WMT","COST","HD","LOW","TGT",
+"DIS","SONY","SPOT"
+];
+
+function decisionColor(text){
+  if(text.includes("BUY")) return "buy";
+  if(text.includes("AVOID")) return "avoid";
+  return "watch";
+}
+
+function renderCard(stock){
+  return `
+    <div class="card">
+      <h3>${stock.symbol}</h3>
+      <p class="${decisionColor(stock.decision)}">${stock.decision}</p>
+      <p>السعر: ${stock.price}</p>
+      <p>الفرصة: ${stock.opportunityType}</p>
+      <p>${stock.reason}</p>
+      <p>Score: ${stock.opportunityScore} | Entry: ${stock.entryScore}</p>
     </div>
+  `;
+}
 
-    <div id="singleResult" class="single-result hidden"></div>
-    <div id="results" class="grid"></div>
-  </div>
+function normalize(text){
+  return text.split(",").map(s=>s.trim().toUpperCase()).filter(Boolean);
+}
 
-  <script>
-    const WORKER_URL = "https://flat-firefly-1af6.www-ana-com.workers.dev";
+async function runScan(){
+  const input = document.getElementById("symbolsInput").value;
+  const status = document.getElementById("status");
+  const results = document.getElementById("results");
 
-    function decisionClass(text) {
-      if (!text) return "watch";
-      if (text.includes("BUY")) return "buy";
-      if (text.includes("AVOID")) return "avoid";
-      return "watch";
-    }
+  const symbols = normalize(input);
 
-    function normalizeSymbols(text) {
-      return text
-        .split(",")
-        .map(s => s.trim().toUpperCase())
-        .filter(Boolean);
-    }
+  if(symbols.length===0){
+    status.textContent="اكتب سهم أو أكثر";
+    return;
+  }
 
-    function setExample(value) {
-      document.getElementById("symbolsInput").value = value;
-    }
+  status.textContent="جاري التحليل...";
 
-    function clearAllFields() {
-      document.getElementById("symbolsInput").value = "";
-      document.getElementById("status").textContent = "";
-      document.getElementById("results").innerHTML = "";
-      document.getElementById("singleResult").innerHTML = "";
-      document.getElementById("singleResult").classList.add("hidden");
-    }
+  const res = await fetch(`${WORKER_URL}/?symbols=${symbols.join(",")}&type=scan`);
+  const data = await res.json();
 
-    function translateDecision(text) {
-      if (!text) return "-";
-      if (text.includes("BUY")) return "🟢 شراء";
-      if (text.includes("AVOID")) return "🔴 تجنب";
-      return "🟡 مراقبة";
-    }
+  results.innerHTML = data.map(renderCard).join("");
+  status.textContent="تم التحليل";
+}
 
-    function translateType(text) {
-      if (!text) return "-";
-      return text
-        .replace("PULLBACK", "سحب/ارتداد")
-        .replace("BREAKOUT WATCH", "مراقبة اختراق")
-        .replace("LATE / RESISTANCE", "متأخر / قرب مقاومة")
-        .replace("WEAK SETUP", "فرصة ضعيفة")
-        .replace("NEUTRAL", "محايد");
-    }
+async function runAnalysis(){
+  const input = document.getElementById("symbolsInput").value;
+  const status = document.getElementById("status");
+  const results = document.getElementById("results");
 
-    function renderCard(stock) {
-      return `
-        <div class="card">
-          <h3>${stock.symbol}</h3>
-          <div class="badge ${decisionClass(stock.decision)}">${translateDecision(stock.decision)}</div>
-          <div class="line">السعر: <strong>${stock.price ?? "-"}</strong></div>
-          <div class="line">نوع الفرصة: <strong>${translateType(stock.opportunityType ?? "-")}</strong></div>
-          <div class="line">السبب: <strong>${stock.reason ?? "-"}</strong></div>
-          <div class="line">Opportunity Score: <strong>${stock.opportunityScore ?? "-"}</strong></div>
-          <div class="line">Entry Score: <strong>${stock.entryScore ?? "-"}</strong></div>
-          <div class="line">Confidence: <strong>${stock.confidence ?? "-"}</strong></div>
-          <div class="line muted">Volume: ${stock.volumeSignal ?? "-"}</div>
-          <div class="line muted">Momentum: ${stock.momentumSignal ?? "-"}</div>
-          <div class="line muted">Location: ${stock.locationSignal ?? "-"}</div>
-        </div>
-      `;
-    }
+  const symbol = normalize(input)[0];
 
-    async function runScan() {
-      const raw = document.getElementById("symbolsInput").value.trim();
-      const status = document.getElementById("status");
-      const results = document.getElementById("results");
-      const singleResult = document.getElementById("singleResult");
+  if(!symbol){
+    status.textContent="اكتب سهم";
+    return;
+  }
 
-      results.innerHTML = "";
-      singleResult.innerHTML = "";
-      singleResult.classList.add("hidden");
+  status.textContent="جاري التحليل...";
 
-      if (!raw) {
-        status.textContent = "اكتب سهمًا واحدًا أو قائمة أسهم أولًا";
-        return;
-      }
+  const res = await fetch(`${WORKER_URL}/?symbol=${symbol}&type=analysis`);
+  const data = await res.json();
 
-      const symbols = normalizeSymbols(raw);
+  results.innerHTML = renderCard(data);
+  status.textContent="تم التحليل";
+}
 
-      if (symbols.length === 0) {
-        status.textContent = "لم يتم العثور على رموز صالحة";
-        return;
-      }
+async function runRadar(){
+  const status = document.getElementById("status");
+  const results = document.getElementById("results");
 
-      status.textContent = `جارٍ تشغيل السكان على ${symbols.length} سهم...`;
+  status.textContent="🔥 جاري البحث عن الفرص...";
 
-      try {
-        const res = await fetch(
-          `${WORKER_URL}/?symbols=${encodeURIComponent(symbols.join(","))}&type=scan`
-        );
-        const data = await res.json();
+  const res = await fetch(`${WORKER_URL}/?symbols=${RADAR_SYMBOLS.join(",")}&type=scan`);
+  const data = await res.json();
 
-        if (!Array.isArray(data)) {
-          status.textContent = "صار خطأ في بيانات السكان";
-          return;
-        }
+  const top = data.slice(0,10);
 
-        results.innerHTML = data.map(renderCard).join("");
-        status.textContent = `تم تحليل ${data.length} سهم`;
-      } catch (err) {
-        status.textContent = "فشل السكان. تحقق من الربط أو CORS";
-      }
-    }
+  results.innerHTML = top.map(renderCard).join("");
+  status.textContent="🔥 أفضل 10 فرص جاهزة";
+}
 
-    async function runAnalysis() {
-      const raw = document.getElementById("symbolsInput").value.trim();
-      const status = document.getElementById("status");
-      const results = document.getElementById("results");
-      const singleResult = document.getElementById("singleResult");
+</script>
 
-      results.innerHTML = "";
-      singleResult.innerHTML = "";
-      singleResult.classList.add("hidden");
-
-      if (!raw) {
-        status.textContent = "اكتب رمز سهم واحد أولًا";
-        return;
-      }
-
-      const symbols = normalizeSymbols(raw);
-      const firstSymbol = symbols[0];
-
-      if (!firstSymbol) {
-        status.textContent = "رمز السهم غير صالح";
-        return;
-      }
-
-      status.textContent = `جارٍ تحليل ${firstSymbol}...`;
-
-      try {
-        const res = await fetch(
-          `${WORKER_URL}/?symbol=${encodeURIComponent(firstSymbol)}&type=analysis`
-        );
-        const data = await res.json();
-
-        singleResult.innerHTML = renderCard(data);
-        singleResult.classList.remove("hidden");
-        status.textContent = `تم تحليل ${firstSymbol}`;
-      } catch (err) {
-        status.textContent = "فشل التحليل. تحقق من الربط أو CORS";
-      }
-    }
-
-    document.getElementById("symbolsInput").addEventListener("keydown", function (e) {
-      if (e.key === "Enter") {
-        runAnalysis();
-      }
-    });
-  </script>
 </body>
 </html>
