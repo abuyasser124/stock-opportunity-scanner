@@ -15,7 +15,7 @@ body {
 }
 
 .container {
-  max-width: 1000px;
+  max-width: 1100px;
   margin: auto;
 }
 
@@ -52,21 +52,28 @@ button {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit,minmax(300px,1fr));
+  gap: 12px;
   margin-top: 20px;
 }
 
 .card {
   background: #171a21;
-  padding: 15px;
-  border-radius: 10px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #2b3240;
 }
 
 .buy { color:#00ff88; }
 .watch { color:#ffd000; }
 .avoid { color:#ff4d4d; }
 .waitbreakout { color:#ffb347; }
+
+.small {
+  color: #b8c0cc;
+  font-size: 14px;
+  margin-top: 6px;
+}
 </style>
 </head>
 
@@ -90,7 +97,6 @@ button {
 <script>
 const WORKER_URL = "https://flat-firefly-1af6.www-ana-com.workers.dev";
 
-/* رادار خفيف وسريع */
 const RADAR_SYMBOLS = [
   "AAPL","NVDA","AMD","TSLA","META","AMZN","GOOGL","MSFT",
   "AVGO","NFLX","PLTR","SMCI","ARM","SHOP","UBER","ABNB",
@@ -109,6 +115,18 @@ function normalize(text) {
   return text.split(",").map(s => s.trim().toUpperCase()).filter(Boolean);
 }
 
+function renderPlan(stock) {
+  if (stock.entryPoint == null && stock.stopLoss == null && stock.firstTarget == null) {
+    return `<p class="small">لا توجد خطة دخول مباشرة حاليًا</p>`;
+  }
+
+  return `
+    <p>نقطة الدخول: ${stock.entryPoint ?? "-"}</p>
+    <p>وقف الخسارة: ${stock.stopLoss ?? "-"}</p>
+    <p>الهدف الأول: ${stock.firstTarget ?? "-"}</p>
+  `;
+}
+
 function renderCard(stock) {
   return `
     <div class="card">
@@ -116,12 +134,14 @@ function renderCard(stock) {
       <p class="${decisionColor(stock.decision)}"><strong>${stock.decision}</strong></p>
       <p>السعر: ${stock.price}</p>
       <p>نوع الفرصة: ${stock.opportunityType}</p>
+      <p>إشارة الاختراق: ${stock.breakoutSignal ?? "-"}</p>
       <p>السبب: ${stock.reason}</p>
       <p>درجة الفرصة: ${stock.opportunityScore} | درجة الدخول: ${stock.entryScore}</p>
       <p>الثقة: ${stock.confidence}</p>
       <p>${stock.volumeSignal}</p>
       <p>${stock.momentumSignal}</p>
       <p>${stock.locationSignal}</p>
+      ${renderPlan(stock)}
     </div>
   `;
 }
